@@ -1,10 +1,12 @@
 const express = require('express');
 const expressGraphQL =require('express-graphql');
+var cors = require('cors');
 
 // module imports
 const schema = require('./schema/schema');
 
 const app = express();
+app.use(cors());
 
 app.use('/graphql' , expressGraphQL({
   schema,

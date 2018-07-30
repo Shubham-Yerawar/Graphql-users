@@ -28,6 +28,8 @@ const {
 
 /**
  * Schema
+ * 1. defines the shape of your data
+ * 2. relationship between the data
  */
 
 const CompanyType = new GraphQLObjectType({
@@ -73,7 +75,8 @@ const UserType = new GraphQLObjectType({
 
 
 // entry point for our application data graph
-const RootQuery = new GraphQLObjectType({
+// fields will have all the type of queries that can be performed on this app graph
+const query = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
     users:{
@@ -127,13 +130,13 @@ const mutation = new GraphQLObjectType({
       args: {
         firstName: { type: new GraphQLNonNull(GraphQLString) }, // making the fields required
         age: { type: new GraphQLNonNull(GraphQLInt) }, // making the fields required
-        companyId: { type: GraphQLString }
+        companyId: { type: new GraphQLNonNull(GraphQLString) }
       },
-      resolve(parentValue, { firstName , age }) {
+      resolve(parentValue, { firstName , age, companyId }) {
         // business logic
         // make a post request to our api
         const url = `http://localhost:3000/users`;
-        let result = axios.post(url,{firstName,age}).then(response => response.data);
+        let result = axios.post(url,{firstName,age,companyId}).then(response => response.data);
         return result;
       }
     },
@@ -158,11 +161,25 @@ const mutation = new GraphQLObjectType({
         return axios.patch(`http://localhost:3000/users/${id}`,{firstName,age,companyId})
           .then(response => response.data);
       }
+    },
+    addCompany:{
+      type: CompanyType,
+      args:{
+        name: { type: GraphQLString },
+        description : { type: GraphQLString}
+      },
+      resolve(parentvalue, {name,description}){
+        return axios.post(`http://localhost:3000/companies`,{name,description})
+          .then(response => {
+            // console.log(response.data);
+           return response.data
+          });
+      }
     }
   }
 });
 
 module.exports = new GraphQLSchema({
-  query: RootQuery,
+  query,
   mutation
 });
